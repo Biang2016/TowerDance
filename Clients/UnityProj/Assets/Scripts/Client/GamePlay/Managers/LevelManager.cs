@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using BiangStudio.GamePlay.UI;
 using BiangStudio.Singleton;
 using MS.Framework.Serialize;
 using UnityEngine;
@@ -30,6 +31,7 @@ public class LevelManager : TSingletonBaseManager<LevelManager>
     public override void Awake()
     {
         base.Awake();
+        IsHard = false;
         if (File.Exists(EasyFilePath))
         {
             RhythmRecordDict = SerializeUtility.FromFile<SortedDictionary<int, RhythmRecord>>(EasyFilePath);
@@ -42,10 +44,13 @@ public class LevelManager : TSingletonBaseManager<LevelManager>
         }
     }
 
+    internal bool IsHard = false;
+
     public void SwitchToHard()
     {
         if (File.Exists(HardFilePath))
         {
+            IsHard = true;
             RhythmRecordDict = SerializeUtility.FromFile<SortedDictionary<int, RhythmRecord>>(HardFilePath);
             RhythmRecordDict_Record = SerializeUtility.FromFile<SortedDictionary<int, RhythmRecord>>(HardFilePath);
         }
@@ -200,6 +205,20 @@ public class LevelManager : TSingletonBaseManager<LevelManager>
 
                 if (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.R) || Input.GetKey(KeyCode.T) || bd.JumpState == JumpState.Highlighting)
                 {
+                    float hitAccuracy = bd.HitAccuracy;
+                    if (hitAccuracy < 0.5f)
+                    {
+                        AddHitQuality(HitQuality.Good);
+                    }
+                    else if (hitAccuracy < 0.75f)
+                    {
+                        AddHitQuality(HitQuality.Great);
+                    }
+                    else
+                    {
+                        AddHitQuality(HitQuality.Perfect);
+                    }
+
                     if (groupJump && BrickDanceGroupDict.TryGetValue(bd.BrickGroupIndex, out List<BrickDance> bds))
                     {
                         foreach (BrickDance _bd in bds)
@@ -244,6 +263,92 @@ public class LevelManager : TSingletonBaseManager<LevelManager>
         BrickDanceGroupDict.Clear();
         BrickDanceDict.Clear();
     }
+
+    #region Score
+
+    private int score;
+
+    public int Score
+    {
+        get { return score; }
+        set
+        {
+            if (score != value)
+            {
+                UIManager.Instance.GetBaseUIForm<ScorePanel>().SetScore(value);
+                score = value;
+            }
+        }
+    }
+
+    private int combo;
+
+    public int Combo
+    {
+        get { return combo; }
+        set
+        {
+            if (combo != value)
+            {
+                UIManager.Instance.GetBaseUIForm<ScorePanel>().SetCombo(value);
+                combo = value;
+            }
+        }
+    }
+
+    public void AddHitQuality(HitQuality hitQuality)
+    {
+        UIManager.Instance.GetBaseUIForm<ScorePanel>().SetQuality(hitQuality);
+        if (hitQuality == HitQuality.Miss)
+        {
+            Combo = 0;
+        }
+        else
+        {
+            Combo++;
+            float point = 200;
+            if (Combo < 20)
+            {
+                point = 200;
+            }
+            else if (Combo < 50)
+            {
+                point = 332;
+            }
+            else if (Combo < 100)
+            {
+                point = 466;
+            }
+            else
+            {
+                point = 600;
+            }
+
+            switch (hitQuality)
+            {
+                case HitQuality.Good:
+                {
+                    point *= 0.4f;
+                    break;
+                }
+                case HitQuality.Great:
+                {
+                    point *= 0.8f;
+                    break;
+                }
+                case HitQuality.Perfect:
+                {
+                    point *= 1f;
+                    break;
+                }
+            }
+
+            int intPoint = Mathf.RoundToInt(point);
+            Score += intPoint;
+        }
+    }
+
+    #endregion
 }
 
 [Serializable]

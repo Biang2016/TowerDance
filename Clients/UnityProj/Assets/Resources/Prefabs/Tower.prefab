@@ -9369,7 +9369,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   BrickIndex: 106
-  BrickGroupIndex: 5
+  BrickGroupIndex: 7
   MeshFilter: {fileID: 6574494987571033965}
   MeshSource: {fileID: -5053925668127403250, guid: 215af2bbad1e1a242a486c1ba86a7c44,
     type: 3}

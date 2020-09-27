@@ -306,7 +306,6 @@ public class BrickDance : MonoBehaviour
 
     IEnumerator Co_Highlight(float waitDuration)
     {
-        Debug.Log(waitDuration);
         JumpState = JumpState.Highlighting;
 
         float durationTick = 0f;
@@ -333,6 +332,7 @@ public class BrickDance : MonoBehaviour
 
         yield return new WaitForSeconds(0.15f);
         JumpState = JumpState.Static;
+        LevelManager.Instance.AddHitQuality(HitQuality.Miss);
     }
 
     private void ShrinkMesh(float scale)
@@ -407,4 +407,12 @@ public enum JumpState
     Highlighting,
     Jumping,
     Returning,
+}
+
+public enum HitQuality
+{
+    Miss,
+    Good,
+    Great,
+    Perfect
 }

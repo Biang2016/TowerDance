@@ -1,14 +1,10 @@
 ﻿using System.Collections.Generic;
-using BiangStudio.CloneVariant;
 using BiangStudio.GamePlay;
 using BiangStudio.GamePlay.UI;
-using BiangStudio.Log;
 using BiangStudio.Singleton;
 using Sirenix.OdinInspector;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class ClientGameManager : MonoSingleton<ClientGameManager>
 {
@@ -57,8 +53,11 @@ public class ClientGameManager : MonoSingleton<ClientGameManager>
 
     public float FirstStepTime = 14f;
 
-    public Button EasyButton;
-    public Button HardButton;
+    public Animator EasyButtonAnim;
+    public Animator HardButtonAnim;
+
+    public GameObject HardChoosePanel;
+    public AudioSource BGMAudioSource;
 
     private void Awake()
     {
@@ -119,9 +118,10 @@ public class ClientGameManager : MonoSingleton<ClientGameManager>
             ReloadGame();
             return;
         }
+
         if (Input.GetKey(KeyCode.C))
         {
-            Time.timeScale = 3f;
+            Time.timeScale = 5f;
         }
         else
         {
@@ -168,9 +168,31 @@ public class ClientGameManager : MonoSingleton<ClientGameManager>
         LevelManager.FixedUpdate(Time.fixedDeltaTime);
     }
 
-    private void StartGame()
+    public void StartGame()
     {
-        //AudioManager.Instance.BGMFadeIn("bgm/Tangled", 0.2f, 1, true);
+        UIManager.Instance.ShowUIForms<ScorePanel>();
+        LevelManager.Instance.Score = 0;
+        LevelManager.Instance.Combo = 0;
+    }
+
+    public void EasyButtonShow()
+    {
+        EasyButtonAnim.SetTrigger("Show");
+    }
+
+    public void HardButtonShow()
+    {
+        HardButtonAnim.SetTrigger("Show");
+    }
+
+    public void HideHardChoosePanel()
+    {
+        HardChoosePanel.SetActive(false);
+    }
+
+    public void ShowHighestScore()
+    {
+        UIManager.Instance.GetBaseUIForm<ScorePanel>().ShowHighestScore();
     }
 
     public void ReloadGame()
@@ -192,24 +214,6 @@ public class ClientGameManager : MonoSingleton<ClientGameManager>
         PrefabManager.ShutDown();
         LayerManager.ShutDown();
     }
-
-    [HideInPlayMode]
-    [Button("选择组号的砖块")]
-    public void SelectAllBricksOfGroupIndex()
-    {
-        if (LevelManager.Instance.BrickDanceGroupDict.TryGetValue(BrickGroupIndex, out List<BrickDance> bds))
-        {
-            List<GameObject> selection = new List<GameObject>();
-            foreach (BrickDance brickDance in bds)
-            {
-                selection.Add(brickDance.gameObject);
-            }
-
-            Selection.objects = selection.ToArray();
-        }
-    }
-
-    public int BrickGroupIndex = 0;
 
     public void SwitchToHard()
     {
